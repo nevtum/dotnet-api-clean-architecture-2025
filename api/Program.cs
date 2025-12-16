@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using api;
+using api.Services;
+using common;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,6 +11,9 @@ builder.Services.AddOpenApi();
 builder.Services.AddControllers(); // or AddEndpointsApiExplorer() for minimal APIs
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+// Add repository services
+builder.Services.AddScoped<IProductRepository, ProductRepository>();
 
 // Add database context
 builder.Services.AddDbContext<AppDbContext>(options =>
