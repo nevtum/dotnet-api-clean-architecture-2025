@@ -1,5 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
-using System.Collections.Concurrent;
+using common;
+using System.Linq;
+using System.Threading;
+using System.Collections.Generic;
 
 namespace api.Controllers
 {
@@ -8,62 +11,63 @@ namespace api.Controllers
     public class ProductController : ControllerBase
     {
         // Thread-safe in-memory collection for demonstration
-        private static ConcurrentDictionary<int, Product> _products = new();
+        private readonly AppDbContext _context;
+
+        public ProductController(AppDbContext context)
+        {
+            _context = context;
+        }
         private static int _nextId = 1;
 
         [HttpGet]
         public ActionResult<IEnumerable<Product>> GetProducts()
         {
-            return Ok(_products.Values);
+            return Ok(_context.Products.ToList());
         }
 
         [HttpGet("{id}")]
         public ActionResult<Product> GetProduct(int id)
         {
-            if (_products.TryGetValue(id, out var product))
+            var product = _context.Products.Find(id);
+            if (product == null)
             {
-                return Ok(product);
+                return NotFound();
             }
-            return NotFound();
+            return Ok(product);
         }
 
         [HttpPost]
         public ActionResult<Product> CreateProduct(Product product)
         {
             product.Id = Interlocked.Increment(ref _nextId);
-            _products[product.Id] = product;
+            _context.Products.Add(product);
             return CreatedAtAction(nameof(GetProduct), new { id = product.Id }, product);
         }
 
         [HttpPut("{id}")]
         public IActionResult UpdateProduct(int id, Product product)
         {
-            if (!_products.ContainsKey(id))
+            if (_context.Products.Find(id) == null)
             {
                 return NotFound();
             }
 
             product.Id = id;
-            _products[id] = product;
+            _context.Products.Update(product);
             return NoContent();
         }
 
         [HttpDelete("{id}")]
-        public IActionResult DeleteProduct(int id)
+        public async Task<IActionResult> DeleteProduct(int id)
         {
-            if (_products.TryRemove(id, out _))
+            var product = _context.Products.Find(id);
+            if (product == null)
             {
-                return NoContent();
+                return NotFound();
             }
-            return NotFound();
+            _context.Products.Remove(product);
+            await _context.SaveChangesAsync();
+            return NoContent();
         }
-    }
-
-    public class Product
-    {
-        public int Id { get; set; }
-        public string? Name { get; set; }
-        public decimal Price { get; set; }
-        public string? Description { get; set; }
     }
 }
