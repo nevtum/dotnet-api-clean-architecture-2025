@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using common;
-using System.Linq;
-using System.Threading;
+using api.Services;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace api.Controllers
 {
@@ -10,64 +10,48 @@ namespace api.Controllers
     [Route("api/[controller]")]
     public class ProductController : ControllerBase
     {
-        // Thread-safe in-memory collection for demonstration
-        private readonly AppDbContext _context;
+        private readonly ProductUseCase _productUseCase;
 
-        public ProductController(AppDbContext context)
+        public ProductController(ProductUseCase productUseCase)
         {
-            _context = context;
+            _productUseCase = productUseCase;
         }
-        private static int _nextId = 1;
 
         [HttpGet]
-        public ActionResult<IEnumerable<Product>> GetProducts()
+        public async Task<ActionResult<IEnumerable<Product>>> GetProducts()
         {
-            return Ok(_context.Products.ToList());
+            var products = await _productUseCase.GetProductsAsync();
+            return Ok(products);
         }
 
         [HttpGet("{id}")]
-        public ActionResult<Product> GetProduct(int id)
+        public async Task<ActionResult<Product>> GetProduct(int id)
         {
-            var product = _context.Products.Find(id);
-            if (product == null)
-            {
-                return NotFound();
-            }
+            var product = await _productUseCase.GetProductAsync(id);
+            if (product == null) return NotFound();
             return Ok(product);
         }
 
         [HttpPost]
-        public ActionResult<Product> CreateProduct(Product product)
+        public async Task<ActionResult<Product>> CreateProduct(Product product)
         {
-            product.Id = Interlocked.Increment(ref _nextId);
-            _context.Products.Add(product);
-            return CreatedAtAction(nameof(GetProduct), new { id = product.Id }, product);
+            var createdProduct = await _productUseCase.CreateProductAsync(product);
+            return CreatedAtAction(nameof(GetProduct), new { id = createdProduct.Id }, createdProduct);
         }
 
         [HttpPut("{id}")]
-        public IActionResult UpdateProduct(int id, Product product)
+        public async Task<IActionResult> UpdateProduct(int id, Product product)
         {
-            if (_context.Products.Find(id) == null)
-            {
-                return NotFound();
-            }
-
             product.Id = id;
-            _context.Products.Update(product);
-            return NoContent();
+            var updated = await _productUseCase.UpdateProductAsync(product);
+            return updated ? NoContent() : NotFound();
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteProduct(int id)
         {
-            var product = _context.Products.Find(id);
-            if (product == null)
-            {
-                return NotFound();
-            }
-            _context.Products.Remove(product);
-            await _context.SaveChangesAsync();
-            return NoContent();
+            var deleted = await _productUseCase.DeleteProductAsync(id);
+            return deleted ? NoContent() : NotFound();
         }
     }
 }
