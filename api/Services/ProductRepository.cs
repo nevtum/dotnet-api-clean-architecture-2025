@@ -19,7 +19,12 @@ public class ProductRepository : IProductRepository
 
     public async Task<Product> GetProductByIdAsync(int id)
     {
-        return await _context.Products.FindAsync(id);
+        var product = await _context.Products.FindAsync(id);
+        if (product == null)
+        {
+            throw new KeyNotFoundException($"Product with id {id} was not found.");
+        }
+        return product;
     }
 
     public async Task<Product> CreateProductAsync(Product product)
@@ -39,7 +44,7 @@ public class ProductRepository : IProductRepository
     {
         var product = await _context.Products.FindAsync(id);
         if (product == null) return false;
-        
+
         _context.Products.Remove(product);
         return await _context.SaveChangesAsync() > 0;
     }
