@@ -3,13 +3,13 @@ FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /app
 
 # Copy csproj files and restore as distinct layers
-COPY Project.slnx ./
-COPY api/*.csproj ./api/
-COPY common/*.csproj ./common/
+COPY src/Project.slnx ./
+COPY src/api/*.csproj ./api/
+COPY src/common/*.csproj ./common/
 RUN dotnet restore
 
 # Copy the entire app
-COPY . ./
+COPY src ./
 
 # Build the application
 RUN dotnet publish api -c Release -o out
