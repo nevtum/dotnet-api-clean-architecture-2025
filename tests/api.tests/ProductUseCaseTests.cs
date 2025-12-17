@@ -2,7 +2,7 @@ using common;
 using api.Services;
 using Moq;
 
-namespace api.Services.UnitTests
+namespace api.Services.Tests
 {
     [TestFixture]
     public class ProductUseCaseTests

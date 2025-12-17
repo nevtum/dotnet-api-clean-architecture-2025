@@ -8,9 +8,9 @@ namespace api.Controllers
     [Route("api/[controller]")]
     public class ProductController : ControllerBase
     {
-        private readonly ProductUseCase _productUseCase;
+        private readonly IProductUseCase _productUseCase;
 
-        public ProductController(ProductUseCase productUseCase)
+        public ProductController(IProductUseCase productUseCase)
         {
             _productUseCase = productUseCase;
         }

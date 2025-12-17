@@ -1,6 +1,15 @@
 using common;
 namespace api.Services;
 
+public interface IProductUseCase
+{
+    public Task<IEnumerable<Product>> GetProductsAsync();
+    public Task<Product> GetProductAsync(int id);
+    public Task<Product> CreateProductAsync(Product product);
+    public Task<bool> UpdateProductAsync(Product product);
+    public Task<bool> DeleteProductAsync(int id);
+}
+
 public class ProductUseCase
 {
     private readonly IProductRepository _productRepository;
