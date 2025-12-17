@@ -1,8 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using common;
 using api.Services;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace api.Controllers
 {
